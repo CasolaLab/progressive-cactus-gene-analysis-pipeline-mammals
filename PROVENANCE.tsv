@@ -1,0 +1,23 @@
+file	source	version	md5	note
+scripts/step1_mafextractor.sh	LINGUA/3_alignment_extraction/scripts/step1_mafextractor.sh	LINGUA 911c653	2a6f8cd1caa5c8e0b3b0ce73f10b7b83	unchanged from main
+scripts/step2_missingbp_summaries.sh	LINGUA/3_alignment_extraction/scripts/step2_missingbp_summaries.sh	LINGUA 911c653	a22ac6bb7886a782b1f82b4ca9d575da	unchanged from main
+scripts/step3_filtering_species.py	LINGUA/3_alignment_extraction/scripts/step3_filtering_species.py	LINGUA 911c653	aa283700f9d8b5a5a7dab11455c2df7e	unchanged from main
+scripts/step5_validate_reverse_complement.py	LINGUA/3_alignment_extraction/scripts/step5_validate_reverse_complement.py	LINGUA 911c653	52fd6958063f19a6ba6a02801837688b	unchanged from main
+scripts/step6_update_summary_files.py	LINGUA/3_alignment_extraction/scripts/step6_update_summary_files.py	LINGUA 911c653	33a749f35ce69c0c2919edd7d664aec1	unchanged from main
+scripts/step7_first_stage_validation.py	LINGUA/3_alignment_extraction/scripts/step7_first_stage_validation.py	LINGUA 911c653	debb93a27fcaa269c33f8fa0ddba57f0	unchanged from main
+scripts/step10_second_stage_validation.py	LINGUA/3_alignment_extraction/scripts/step10_second_stage_validation.py	LINGUA 911c653	02b8ba96cd081dc8675c7feb29cffab0	unchanged from main
+scripts/step11_update_stitched_exons_summary.py	LINGUA/3_alignment_extraction/scripts/step11_update_stitched_exons_summary.py	LINGUA 911c653	2fded7b0f942ac529fe18ee4a68fe664	unchanged from main
+scripts/step15_identify_first_and_last_three_bases.sh	LINGUA/3_alignment_extraction/scripts/step15_identify_first_and_last_three_bases.sh	LINGUA 911c653	965eec2b0e51aa012105cfe6f07b5285	unchanged from main
+scripts/step16_extract_start_and_stops.py	LINGUA/3_alignment_extraction/scripts/step16_extract_start_and_stops.py	LINGUA 911c653	9f15ca37a912f1f299aff90f98df0072	unchanged from main
+scripts/step17_combine_all_species_info.py	LINGUA/3_alignment_extraction/scripts/step17_combine_all_species_info.py	LINGUA 911c653	a845886ba68fe1d7b6336e145c5e550a	unchanged from main
+scripts/clean_nucleotide_fasta_headers.py	LINGUA/3_alignment_extraction/scripts/clean_nucleotide_fasta_headers.py	LINGUA 911c653	79985dc62edefcda6792e7bb916f11b6	unchanged from main
+scripts/step4_reverse_complement_add_missingbp.sh	LINGUA/3_alignment_extraction/scripts/step4_reverse_complement_add_missingbp.sh	LINGUA 911c653	c3dfff00bf88b1ea40d1fe47b6d66e80	no genome lookup (Sierra 2026-10-08); A. thaliana identical with/without per handoff
+scripts/step12_identify_start_codons.sh	LINGUA/3_alignment_extraction/scripts/step12_identify_start_codons.sh	LINGUA 911c653	b18818d3659edf3ce9704d243866dfd0	length from step 11 actual_nt column; step14 cds_length now per species
+scripts/step13_identify_stop_codons.sh	LINGUA/3_alignment_extraction/scripts/step13_identify_stop_codons.sh	LINGUA 911c653	23f8ad928a8fc2cb9d64fb5c1ac16c8e	length from step 11 actual_nt column; step14 cds_length now per species
+scripts/step14_identify_indels.sh	LINGUA/3_alignment_extraction/scripts/step14_identify_indels.sh	LINGUA 911c653	1479ff75e3952ed865b2b6ff251225ca	length from step 11 actual_nt column; step14 cds_length now per species
+scripts/step9_trimming_duplicate_bases.py	LINGUA git show 69ca427:3_alignment_extraction/scripts/step9_trimming_duplicate_bases.py	LINGUA 69ca427	b99a9e4ff8d409eb01cd2f55fc2bc737	per-exon padding removal; NOT main (911c653), which drops the real base when padding equals its neighbor
+scripts/step8_stitching_exons.py	step8_stitching_exons.py	hyper_summary 2026-10-08	17fbf0f0cd106580ec11f8dff7249878	Python port of step8 .sh, byte-identical on 4 species; use --one-row-per-species; needs TREE_FILE
+scripts/step3_dominant_chain.py	step3_dominant_chain.py	hyper_summary 2026-10-07	e1c66319e352b8d5e95b789054ad7751	ALTERNATIVE to strict step 3: keeps each species' dominant collinear chain
+audits/audit_optionA.py	audit_optionA.py	hyper_summary 2026-10-07	edfad4637d9caf39ec9e00a397686660	independent audit of step3_dominant_chain
+audits/audit_stage3_endtoend.py	audit_stage3_endtoend.py	hyper_summary 2026-10-07	e7d47b0d2feb419ccd252e116acb5685	every base at its expected column, with positive control
+tools/run_monitor.py	stage3_paper_repro/run_monitor.py	hyper_summary 2026-10-08	8b2ead46c2a67e55235e54e0759514a7	Dayhoff thermal/disk guard (pause 88C x3, resume 78C)
