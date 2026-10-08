@@ -23,9 +23,9 @@ reproduces the Brassicaceae paper outputs with their bugs; do not use it for mam
 
 | Step | Script | Choice |
 |---|---|---|
-| 3 | `step3_filtering_species.py` | repo strict filter (default). `step3_dominant_chain.py` is the audited alternative; choose before running |
+| 3 | `step3_dominant_chain.py` | **default**: for each species and exon keeps the dominant collinear chain of blocks (same chromosome and strand, increasing coordinates, gaps <= 50 kb) and drops only the other blocks, so orthologous sequence is kept and blocks from other chromosomes or >50 kb away are removed. `STEP3=strict` uses the repo filter `step3_filtering_species.py`, which removes the species from the whole exon instead |
 | 4 | `step4_reverse_complement_add_missingbp.sh` | LINGUA 911c653: no genome lookup, so no genome FASTAs or samtools needed |
-| 8 | `step8_stitching_exons.py` | Python port, run with `--one-row-per-species` (split rows come from step 8 keying rows by species.chromosome) |
+| 8 | `step8_stitching_exons.py` | Python port, run with `--one-row-per-species` by default (`ONE_ROW=0` to keep split rows; split rows come from step 8 keying rows by species.chromosome) |
 | 9 | `step9_trimming_duplicate_bases.py` | LINGUA **69ca427**, not main: main removes the real base when the padding base equals its neighbor |
 | 12-14 | repo 911c653 | reference length read from the step 11 `actual_nt` column; step 14 `cds_length` is now each species' own length |
 | others | repo main 911c653 | unchanged |
@@ -39,6 +39,28 @@ reproduces the Brassicaceae paper outputs with their bugs; do not use it for mam
 3. Steps 12-14 have not yet run on RefSeq names (`NC_060925.1`, `NP_…`); confirm Chromosome is
    not NA in their outputs.
 4. Steps 15 and 17 write rows in nondeterministic order; compare content, not bytes.
+
+## Running
+
+`run_stage3.sh` runs steps 1-17 for one focal species, with every input given on the command line:
+
+```
+setsid nohup nice -n 19 ionice -c3 env THREADS=8 \
+    bash run_stage3.sh <workdir> Homo_sapiens <Homo_sapiens BED> <CDS FASTA> /mnt/ExData/t2t_mammals_human.maf <tree.nwk> \
+    > <workdir>.log 2>&1 < /dev/null &
+```
+
+Options (environment): `STEP3=dominant|strict` (default dominant), `JUMP` (50000), `ONE_ROW=1|0` (default 1),
+`THREADS`, `JOBS` (parallel step 1 chunks), `STEP1_SRC` (copy existing step 1 files instead of running
+mafExtractor), `FLOOR_GB` (refuses to start below this free space), `ENV_BIN` (Python env with Biopython and
+pandas, default busco_env). `scripts/prepare_species_inputs.py` writes the exon list and the reference CDS FASTA
+from the BED; the run writes `PROVENANCE.txt` (inputs with md5s, repo commit, options) in the workdir.
+
+Tested 2026-10-08 on Capsella grandiflora (Brassicaceae alignment, 278 loci, existing step 1 files):
+with `STEP3=strict ONE_ROW=0` all 278 step 9 alignments are byte-identical to the 2026-10-06 rerun that used
+the same steps 3, 8 and 9 (the step 4 summary differs only in row order); with the defaults,
+`audits/audit_optionA.py` reports no violations and `audits/audit_stage3_endtoend.py` no errors (6,264 rows,
+1,187,147 bases at their expected columns). Not yet run on the mammal alignment.
 
 ## Running on Dayhoff
 

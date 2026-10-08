@@ -21,3 +21,5 @@ scripts/step3_dominant_chain.py	step3_dominant_chain.py	hyper_summary 2026-10-07
 audits/audit_optionA.py	audit_optionA.py	hyper_summary 2026-10-07	edfad4637d9caf39ec9e00a397686660	independent audit of step3_dominant_chain
 audits/audit_stage3_endtoend.py	audit_stage3_endtoend.py	hyper_summary 2026-10-07	e7d47b0d2feb419ccd252e116acb5685	every base at its expected column, with positive control
 tools/run_monitor.py	stage3_paper_repro/run_monitor.py	hyper_summary 2026-10-08	8b2ead46c2a67e55235e54e0759514a7	Dayhoff thermal/disk guard (pause 88C x3, resume 78C)
+run_stage3.sh	new	2026-10-08	22b4f84846c234a3203c611ff8a16d99	runner, steps 1-17; dominant step 3 and one row per species by default
+scripts/prepare_species_inputs.py	LINGUA_stage3_paper/scripts/prepare_species_inputs.py	2026-10-08	f53c3a91cfab5a41997648f0c9e13802	exon list + reference CDS from the BED; also skips a header line without '#'
