@@ -25,7 +25,7 @@ reproduces the Brassicaceae paper outputs with their bugs; do not use it for mam
 |---|---|---|
 | 3 | `step3_dominant_chain.py` | **default**: for each species and exon keeps the dominant collinear chain of blocks (same chromosome and strand, increasing coordinates, gaps <= 50 kb) and drops only the other blocks, so orthologous sequence is kept and blocks from other chromosomes or >50 kb away are removed. `STEP3=strict` uses the repo filter `step3_filtering_species.py`, which removes the species from the whole exon instead |
 | 4 | `step4_reverse_complement_add_missingbp.sh` | LINGUA 911c653: no genome lookup, so no genome FASTAs or samtools needed |
-| 8 | `step8_stitching_exons.py` | Python port, run with `--one-row-per-species` by default (`ONE_ROW=0` to keep split rows; split rows come from step 8 keying rows by species.chromosome) |
+| 8 | `step8_stitching_exons.py` | Python port, run with `--one-row-per-species` by default (`ONE_ROW=0` to keep split rows; split rows come from step 8 keying rows by species.chromosome). Every dropped row is logged in `step8/one_row_per_species_log.tsv` |
 | 9 | `step9_trimming_duplicate_bases.py` | LINGUA **69ca427**, not main: main removes the real base when the padding base equals its neighbor |
 | 12-14 | repo 911c653 | reference length read from the step 11 `actual_nt` column; step 14 `cds_length` is now each species' own length |
 | others | repo main 911c653 | unchanged |

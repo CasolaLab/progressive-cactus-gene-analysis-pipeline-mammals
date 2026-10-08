@@ -9,7 +9,9 @@ full header ("species.chromosome"), so a species whose exons come from different
 per chromosome. With --one-row-per-species, each species keeps only its dominant locus, the header with the most
 aligned (non-gap) bases across the gene's exons (ties: the header seen first); exons from its other headers become
 gaps. The species set, the most distant species and the MRCA node are unchanged by this; aligned_species then
-equals the number of rows.
+equals the number of rows. Every species that had more than one row is logged in
+<output_dir>/one_row_per_species_log.tsv (file, species, rows_before, kept_row, kept_bases, dropped_rows,
+dropped_bases; the same columns as the former step 8b log; dropped rows separated by ';').
 
 Matching the bash script exactly:
   * exon alignments are matched to BED rows by the start_end at the end of the file name and by the chromosome
@@ -129,6 +131,10 @@ def main():
         return str(getattr(m, "name", f"MRCA_unlabeled;clade_size={len(present)}"))   # as in the bash script
 
     rows_out = []
+    log = None
+    if one_row:
+        log = open(os.path.join(out_root, "one_row_per_species_log.tsv"), "w")
+        log.write("file\tspecies\trows_before\tkept_row\tkept_bases\tdropped_rows\tdropped_bases\n")
     for tid, exons in t_exons.items():
         ordered = sorted(exons, key=lambda x: x[0], reverse=(t_strand[tid] == "-"))
         keys = [k for _, k in ordered]
@@ -154,6 +160,12 @@ def main():
                 if sp not in best or (bases[h], -first[h]) > (bases[best[sp]], -first[best[sp]]):
                     best[sp] = h
             keep = set(best.values())
+            for sp, kept in best.items():
+                gone = [h for h in first if h.split(".")[0] == sp and h != kept]
+                if gone:
+                    gone.sort(key=lambda h: first[h])
+                    log.write(f"{out_base}.aln\t{sp}\t{len(gone) + 1}\t{kept}\t{bases[kept]}\t"
+                              f"{';'.join(gone)}\t{sum(bases[h] for h in gone)}\n")
 
         stitched, order, stitched_len = {}, [], 0
         for i, recs in enumerate(exon_recs):
@@ -199,6 +211,8 @@ def main():
         rows_out.append([out_base, tid_clean, chr_clean, t_strand[tid], str(total_len), str(len(keys)),
                          str(len(order)), distant, mrca(sp_list), str(min_start), str(max_end)])
 
+    if log:
+        log.close()
     rows_out.sort(key=lambda r: (version_key(r[1]), r[2], int(r[9])))
     with open(os.path.join(out_root, "master_summary.tsv"), "w") as o:
         o.write("file_name\tgff_transcriptID\tchromosome\tstrand\tlength\tnumber_of_exons\taligned_species\t"
