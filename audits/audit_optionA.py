@@ -118,13 +118,17 @@ for f in os.listdir(f"{wd}/step9"):
 if dup:
     bad["F species in >1 row after step 8b"] += dup
 g_bad = g_n = 0
-if os.path.exists(f"{wd}/step8b_log.tsv"):
-    for r in csv.DictReader(open(f"{wd}/step8b_log.tsv"), delimiter="\t"):
+# the drop log moved into step 8 at commit ac4ce53 (step8/one_row_per_species_log.tsv); older runs
+# wrote step8b_log.tsv. Say which one was read, and warn instead of skipping silently.
+g_log = next((p for p in (f"{wd}/step8/one_row_per_species_log.tsv", f"{wd}/step8b_log.tsv") if os.path.exists(p)), None)
+if g_log:
+    for r in csv.DictReader(open(g_log), delimiter="\t"):
         g_n += 1
-        dropped = r["dropped_rows"].split(";")
-        # per-row bases are not logged; with a single dropped row the comparison is exact
-        if len(dropped) == 1 and int(r["kept_bases"]) < int(r["dropped_bases"]):
+        dropped = [int(x) for x in str(r["dropped_bases"]).replace(",", ";").split(";") if x.strip()]
+        if any(int(r["kept_bases"]) < d for d in dropped):
             g_bad += 1
+else:
+    print("WARNING: no step 8 drop log found (step8/one_row_per_species_log.tsv or step8b_log.tsv); check G not run")
 if g_bad:
     bad["G kept row smaller than dropped"] += g_bad
 
@@ -149,4 +153,4 @@ for k, v in ex.items():
     print(f"  example {k}: {v[:3]}")
 print(f"H master_summary aligned_species differs from step-9 rows: {stale} of {total} alignments")
 print(f"I step 9 statuses: {dict(st9)}")
-print(f"step8b log entries: {g_n}")
+print(f"step 8 drop log: {g_log or none}; entries {g_n}; kept row smaller than a dropped row: {g_bad}")
