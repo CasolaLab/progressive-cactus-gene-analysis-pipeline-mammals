@@ -139,7 +139,7 @@ echo "--- Generating Summary File ---"
 SUMMARY_FILE="$OUTPUT_DIR/extraction_summary.tsv"
 echo -e "file_name\ttranscript_id\tchromosome\tstrand\tlength\tnum_species\tstart\tend" > "$SUMMARY_FILE"
 
-find "$OUTPUT_DIR" -name "*.aln" | while read -r aln_path; do
+find "$OUTPUT_DIR" -name "*.aln" | LC_ALL=C sort | while read -r aln_path; do
     base_name=$(basename "$aln_path" .aln)
     transcript_id=$(echo "$base_name" | awk -F'_' '{print $(NF-3)}')
     chrom=$(echo "$base_name" | awk -F'_' '{print $(NF-2)}')

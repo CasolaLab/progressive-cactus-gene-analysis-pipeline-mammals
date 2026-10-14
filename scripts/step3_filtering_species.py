@@ -121,7 +121,8 @@ def process_maf(args_tuple):
         
         # Log results
         if to_purge:
-            return [f"{base_name},{p},purged_due_to_jump" for p in to_purge]
+            # sorted: set order changes between Python runs (hash randomization)
+            return [f"{base_name},{p},purged_due_to_jump" for p in sorted(to_purge)]
         else:
             return [f"{base_name},None,clean"]
             
@@ -132,7 +133,7 @@ def main():
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
     
-    files = [f for f in os.listdir(args.mafextractor_dir) if f.lower().endswith(('.maf', '.txt'))]
+    files = sorted(f for f in os.listdir(args.mafextractor_dir) if f.lower().endswith(('.maf', '.txt')))
     task_args = [(os.path.join(args.mafextractor_dir, f), args.output_dir, args.ref, args.jump) for f in files]
 
     print(f"Processing {len(files)} files using {args.threads} threads...")

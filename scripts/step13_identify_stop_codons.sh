@@ -51,7 +51,7 @@ with open(summary_file, "r") as f:
 header = "file_name\tgff_transcriptID\tChromosome\tStart\tEnd\tSpecies\tStopCodonStart_RefPos\tStopCodonEnd_RefPos\tStopCodon\tgff_strand_ref\tcds_length\treference_length\n"
 all_rows = []
 
-for aln_file in glob.glob(os.path.join(input_dir, "*.aln")):
+for aln_file in sorted(glob.glob(os.path.join(input_dir, "*.aln"))):
     file_name = os.path.basename(aln_file).replace(".aln", "")
     if not file_name.startswith(reference_species): continue
     

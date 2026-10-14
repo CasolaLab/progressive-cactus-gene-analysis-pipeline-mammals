@@ -49,7 +49,7 @@ while IFS=$'\t' read -r file_name gff_tid _rest; do
 done < "$exons_summary"
 
 # Process ALN files
-find "$step9_trimmed_dir" -maxdepth 1 -type f -name "*.aln" | while IFS= read -r aln_file; do
+find "$step9_trimmed_dir" -maxdepth 1 -type f -name "*.aln" | LC_ALL=C sort | while IFS= read -r aln_file; do
     filename="$(basename "$aln_file")"
     file_name="${filename%.aln}"
 

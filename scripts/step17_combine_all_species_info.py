@@ -52,7 +52,7 @@ def main():
     out_rows = []
     out_rows.append(["file_name", "species_name", "chromosome", "start", "end"])
     
-    aln_files = glob.glob(os.path.join(step9_trimmed_dir, "*.aln"))
+    aln_files = sorted(glob.glob(os.path.join(step9_trimmed_dir, "*.aln")))
     print(f"2. Found {len(aln_files)} final alignment files. Scanning for multi-species coordinates...")
 
     for count, aln_path in enumerate(aln_files, 1):

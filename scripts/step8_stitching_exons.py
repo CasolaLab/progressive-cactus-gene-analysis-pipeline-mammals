@@ -11,7 +11,9 @@ aligned (non-gap) bases across the gene's exons (ties: the header seen first); e
 gaps. The species set, the most distant species and the MRCA node are unchanged by this; aligned_species then
 equals the number of rows. Every species that had more than one row is logged in
 <output_dir>/one_row_per_species_log.tsv (file, species, rows_before, kept_row, kept_bases, dropped_rows,
-dropped_bases; the same columns as the former step 8b log; dropped rows separated by ';').
+dropped_bases; the same columns as the former step 8b log; dropped rows separated by ';'), and the dropped rows
+themselves, in the same columns as the alignment, are written to <output_dir>_one_row_dropped/<file>.aln so that
+filter_dropped_row_indels.py can remove the step 14 indels that only exist because those exons became gaps.
 
 Matching the bash script exactly:
   * exon alignments are matched to BED rows by the start_end at the end of the file name and by the chromosome
@@ -80,6 +82,9 @@ def main():
             sys.exit(f"missing {p}")
     species_name_clean = ref.replace(" ", "_")
     os.makedirs(out_root, exist_ok=True)
+    dropped_dir = out_root.rstrip("/") + "_one_row_dropped"
+    if one_row and os.path.isdir(dropped_dir) and os.listdir(dropped_dir):
+        sys.exit(f"{dropped_dir} already has files; use a new output folder")
 
     coord = collections.defaultdict(list)
     for root, _, files in os.walk(aln_root):
@@ -91,10 +96,11 @@ def main():
 
     t_exons, t_chr, t_strand, validated = collections.defaultdict(list), {}, {}, {}
     with open(bed) as fh:
-        next(fh, None)
         for line in fh:
             f = line.rstrip("\n").split("\t")
-            if len(f) < 7:
+            # skip '#' comments and a header line (non-numeric start), as prepare_species_inputs.py does; the bash
+            # step 8 always skipped the first line, which lost the first exon of a BED without a header
+            if line.startswith("#") or len(f) < 7 or not f[1].strip().isdigit():
                 continue
             chrom, cs, ce, strand, pid = (f[0].replace("\r", "").replace(" ", ""), f[1].strip(), f[2].strip(),
                                           f[5], f[6].replace("\r", "").replace("\n", "").replace(" ", ""))
@@ -167,29 +173,39 @@ def main():
                     log.write(f"{out_base}.aln\t{sp}\t{len(gone) + 1}\t{kept}\t{bases[kept]}\t"
                               f"{';'.join(gone)}\t{sum(bases[h] for h in gone)}\n")
 
-        stitched, order, stitched_len = {}, [], 0
+        # Every row is stitched; with --one-row-per-species only the kept rows go to the alignment and the dropped
+        # rows (same columns) go to <output_dir>_one_row_dropped/ (outside <output_dir>, because step 9 searches its
+        # input folder recursively), so their positions can be masked after step 9
+        # (filter_dropped_row_indels.py). The kept rows are identical to stitching them alone.
+        stitched, all_order, stitched_len = {}, [], 0
         for i, recs in enumerate(exon_recs):
             exon_len = max((len(s) for _, s in recs), default=0)
             seqs = dict(recs)
-            exon_order = [h for h, _ in recs]
-            if keep is not None:
-                exon_order = [h for h in exon_order if h in keep]
-            for h in order:
-                if h not in seqs or (keep is not None and h not in keep):
+            for h in all_order:
+                if h not in seqs:
                     stitched[h] += "-" * exon_len
-            for h in exon_order:
+            for h, _ in recs:
                 if h not in stitched:
                     stitched[h] = "-" * stitched_len + seqs[h]
-                    order.append(h)
+                    all_order.append(h)
                 else:
                     stitched[h] += seqs[h]
             stitched_len += exon_len
-        with open(os.path.join(out_root, out_base + ".aln"), "w") as o:
-            for h in order:
-                o.write(f">{h}\n")
-                s = stitched[h]
-                for j in range(0, len(s), 60):
-                    o.write(s[j:j + 60] + "\n")
+        order = [h for h in all_order if keep is None or h in keep]
+        dropped = [h for h in all_order if keep is not None and h not in keep]
+
+        def write_rows(path, headers):
+            with open(path, "w") as o:
+                for h in headers:
+                    o.write(f">{h}\n")
+                    s = stitched[h]
+                    for j in range(0, len(s), 60):
+                        o.write(s[j:j + 60] + "\n")
+
+        write_rows(os.path.join(out_root, out_base + ".aln"), order)
+        if dropped:
+            os.makedirs(dropped_dir, exist_ok=True)
+            write_rows(os.path.join(dropped_dir, out_base + ".aln"), dropped)
 
         sp_list = [h.split(".")[0] for h in order]
         if ref in sp_list:

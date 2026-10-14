@@ -38,7 +38,7 @@ reproduces the Brassicaceae paper outputs with their bugs; do not use it for mam
    `audits/audit_optionA.py` if the dominant-chain step 3 is used.
 3. Steps 12-14 have not yet run on RefSeq names (`NC_060925.1`, `NP_…`); confirm Chromosome is
    not NA in their outputs.
-4. Steps 15 and 17 write rows in nondeterministic order; compare content, not bytes.
+4. Steps 15 and 17 wrote rows in nondeterministic order; in this copy they are sorted (see Changes below).
 
 ## Running
 
@@ -52,9 +52,35 @@ setsid nohup nice -n 19 ionice -c3 env THREADS=8 \
 
 Options (environment): `STEP3=dominant|strict` (default dominant), `JUMP` (50000), `ONE_ROW=1|0` (default 1),
 `THREADS`, `JOBS` (parallel step 1 chunks), `STEP1_SRC` (copy existing step 1 files instead of running
-mafExtractor), `FLOOR_GB` (refuses to start below this free space), `ENV_BIN` (Python env with Biopython and
-pandas, default busco_env). `scripts/prepare_species_inputs.py` writes the exon list and the reference CDS FASTA
-from the BED; the run writes `PROVENANCE.txt` (inputs with md5s, repo commit, options) in the workdir.
+mafExtractor), `ALLOW_MISSING=1` (continue when some exons have no step 1 file), `START_STEP` (1-17, resume),
+`FLOOR_GB` (refuses to start below this free space), `ENV_BIN` (Python env with Biopython and pandas, default
+busco_env), `MAFEXTRACTOR_BIN` (folder with mafExtractor, default /opt/cactus/cactus/bin). GNU parallel must be
+on PATH (step 4). `scripts/prepare_species_inputs.py` writes the exon list and the reference CDS FASTA from the
+BED; the run appends to `PROVENANCE.txt` (inputs with md5s, repo commit, options, tool paths) in the workdir.
+
+### Changes in this copy (2026-10-13)
+
+- **Checks before anything runs**: inputs exist, mafExtractor (only if step 1 runs without `STEP1_SRC`), GNU
+  parallel (if step 4 runs), Biopython and pandas, the tree can be read (warning if the focal species is not a
+  tip), free space.
+- **Step 1 can no longer continue on empty files**: `step1_mafextractor.sh` writes each exon to a temporary file
+  and keeps it only if mafExtractor succeeded and the output has reference lines; failures are listed in
+  `step1/step1_failed.tsv` and stop the run. After step 1 (extracted or copied), every exon must have a non-empty
+  file with reference lines (`step1_problems.tsv`), and missing exons (`step1_missing.txt`) stop the run unless
+  `ALLOW_MISSING=1`.
+- **`STATUS`** in the workdir: `RUNNING`, then `SUCCEEDED <date>` or `FAILED at <step> (exit N) <date>`, as
+  `tools/run_monitor.py` expects. A run refused by the checks exits before writing it.
+- **`START_STEP=N`** resumes in an existing workdir: input preparation reruns, steps before N are skipped and
+  their outputs must exist, outputs of N and later must not exist (move them away first; the script never deletes
+  anything). A fresh run in a workdir that already has outputs is refused for the same reason.
+- **False deletions from one-row-per-species**: step 8 also writes the dropped rows to `step8_one_row_dropped/`;
+  step 14 then runs into `step14_raw/` and `scripts/filter_dropped_row_indels.py` writes `step14/` without the
+  indels that overlap a species' dropped rows (exons aligned on another chromosome), listing them in
+  `step14_removed_dropped_row_indels.tsv`. The dominant-chain step 3 drops blocks inside an exon in the same way;
+  those gaps are not filtered.
+- **Row order** is sorted in steps 3, 4, 12-15 and 17, so reruns are byte-identical (content unchanged).
+- **BED header**: step 8 detects a header line instead of always skipping line 1 (a BED without header lost its
+  first exon).
 
 Tested 2026-10-08 on Capsella grandiflora (Brassicaceae alignment, 278 loci, existing step 1 files):
 with `STEP3=strict ONE_ROW=0` all 278 step 9 alignments are byte-identical to the 2026-10-06 rerun that used
