@@ -105,7 +105,7 @@ bash run_stage3.sh <workdir> <reference_species> <bed> <cds_fasta> <maf> <tree_n
 - `<reference_species>` is the species prefix used in the MAF sequence names (e.g. `Arabidopsis_thaliana`).
 - `<bed>`: tab-separated chrom, start (0-based), end, name, score, strand, transcript ID; a header line is optional.
 - `<cds_fasta>`: the reference CDS, named by the BED transcript IDs.
-- Existing step 1 extractions can be reused with `STEP1_SRC=<folder>` (mafExtractor is then not needed);
+- Existing step 1 extractions can be reused with `STEP1_SRC=<folder>` (mafExtractor is then not needed and <maf> can be replaced with -);
   `ALLOW_MISSING=1` continues when some exons have no step 1 file.
 - `STEP3=dominant|strict` and `ONE_ROW=1|0` choose the step 3 and step 8 behavior (defaults: dominant, 1).
 - The run checks its inputs and tools before starting, writes `STATUS` (`RUNNING`, then `SUCCEEDED` or
