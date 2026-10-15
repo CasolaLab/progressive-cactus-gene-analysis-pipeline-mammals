@@ -1,7 +1,7 @@
 file	source	version	md5_dayhoff_6416c38	md5_current	status	note
 audits/audit_optionA.py	audit_optionA.py	hyper_summary 2026-10-07	547defd9ac3cafd61d77d5d8d89893ea	547defd9ac3cafd61d77d5d8d89893ea	unchanged	independent audit of step3_dominant_chain
 audits/audit_stage3_endtoend.py	audit_stage3_endtoend.py	hyper_summary 2026-10-07	e7d47b0d2feb419ccd252e116acb5685	e7d47b0d2feb419ccd252e116acb5685	unchanged	every base at its expected column, with positive control
-run_stage3.sh	new	2026-10-08	22b4f84846c234a3203c611ff8a16d99	bbef686d98d9968dab27fd2477917de7	changed	modified by Sierra Sanders (sierras64 repo, 2ab9e10, 2026-10-14); earlier: runner, steps 1-17; dominant step 3 and one row per species by default
+run_stage3.sh	new	2026-10-08	22b4f84846c234a3203c611ff8a16d99	61e635f91c0494b234b442575e8fd8cc	changed	modified by Sierra Sanders (sierras64 repo, 2ab9e10 2026-10-14 and 7a4ab36 2026-10-15); earlier: runner, steps 1-17; dominant step 3 and one row per species by default
 scripts/build_cds_from_genome.py	Dayhoff stage 3 repo	commit 6416c38 (2026-10-09)	cab1d38bc4432c11f13cb6171f864fb4	cab1d38bc4432c11f13cb6171f864fb4	unchanged	reference CDS FASTA from genome + BED (T2T human: 149 identical to RefSeq CDS + POLGARF CTG start)
 scripts/clean_nucleotide_fasta_headers.py	LINGUA/3_alignment_extraction/scripts/clean_nucleotide_fasta_headers.py	LINGUA 911c653	79985dc62edefcda6792e7bb916f11b6	79985dc62edefcda6792e7bb916f11b6	unchanged	unchanged from main
 scripts/filter_dropped_row_indels.py	new			abbe746ab1d8ff12257e32331ab09937	new	added by Sierra Sanders (sierras64 repo, 2ab9e10, 2026-10-14)
