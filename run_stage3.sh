@@ -19,6 +19,7 @@
 #   <bed>: tab-separated, columns chrom, start (0-based), end, name, score, strand, transcript ID (a header line
 #          and '#' comment lines are skipped).
 #   <cds_fasta>: CDS nucleotide sequences named by the BED transcript IDs.
+#   <maf>: read only by step 1 (mafExtractor); give '-' instead when STEP1_SRC is set or START_STEP > 1.
 # Environment:
 #   ENV_BIN      python env bin with Biopython and pandas (default busco_env); put GNU parallel on PATH too
 #   MAFEXTRACTOR_BIN  folder holding mafExtractor (default /opt/cactus/cactus/bin)
@@ -38,10 +39,12 @@ set -euo pipefail
 
 WD="${1:?usage: run_stage3.sh <workdir> <focal_species> <bed> <cds_fasta> <maf> <tree_newick>}"
 SP="${2:?focal species}"
-BED_SRC=$(readlink -f "${3:?bed}")
-CDS_SRC=$(readlink -f "${4:?cds fasta}")
-MAF=$(readlink -f "${5:?maf}")
-export TREE_FILE=$(readlink -f "${6:?tree}")
+# readlink -m, not -f: -f fails (and set -e exits silently) when a parent folder is missing, before the input check
+BED_SRC=$(readlink -m "${3:?bed}")
+CDS_SRC=$(readlink -m "${4:?cds fasta}")
+MAF="${5:?maf (or - when STEP1_SRC is set or START_STEP > 1)}"
+[ "$MAF" = - ] || MAF=$(readlink -m "$MAF")
+export TREE_FILE=$(readlink -m "${6:?tree}")
 REPO=$(cd "$(dirname "$0")" && pwd)
 export PATH=${ENV_BIN:-/opt/miniconda3/envs/busco_env/bin}:${MAFEXTRACTOR_BIN:-/opt/cactus/cactus/bin}:$PATH
 S=$REPO/scripts
@@ -56,8 +59,14 @@ B=$SP.bed
 
 # ---------------------------------------------------------------- checks before anything runs
 die() { echo "ERROR: $*" >&2; exit 2; }
-for f in "$BED_SRC" "$CDS_SRC" "$MAF" "$TREE_FILE"; do [ -e "$f" ] || die "missing input $f"; done
+for f in "$BED_SRC" "$CDS_SRC" "$TREE_FILE"; do [ -e "$f" ] || die "missing input $f"; done
 [ -z "${STEP1_SRC:-}" ] || [ -d "$STEP1_SRC" ] || die "missing STEP1_SRC $STEP1_SRC"
+# the MAF is read only when step 1 runs mafExtractor; otherwise '-' may be given instead of a path
+if [ "$MAF" = - ]; then
+    [ "${START_STEP:-1}" != 1 ] || [ -n "${STEP1_SRC:-}" ] || die "a MAF is needed when step 1 runs mafExtractor (no STEP1_SRC)"
+else
+    [ -e "$MAF" ] || die "missing input $MAF"
+fi
 case $STEP3 in dominant|strict) ;; *) die "STEP3 must be dominant or strict";; esac
 [[ "$START_STEP" =~ ^([1-9]|1[0-7])$ ]] || die "START_STEP must be 1-17"
 if [ "$START_STEP" -eq 1 ] && [ -z "${STEP1_SRC:-}" ]; then
@@ -120,7 +129,13 @@ run() {   # run <step number> <name> <command...>: skipped when <step number> < 
     echo "repo: $REPO ($(git -C "$REPO" rev-parse --short HEAD 2>/dev/null || echo 'no git'))"
     echo "focal species: $SP; STEP3=$STEP3 JUMP=$JUMP ONE_ROW=$ONE_ROW THREADS=$T JOBS=$JOBS START_STEP=$START_STEP ALLOW_MISSING=${ALLOW_MISSING:-0}"
     for f in "$BED_SRC" "$CDS_SRC" "$TREE_FILE"; do echo "input: $f md5 $(md5sum < "$f" | cut -c1-32)"; done
-    echo "input: $MAF ($(stat -c %s "$MAF") bytes, $(stat -c %y "$MAF"))"
+    if [ "$MAF" = - ] && [ -n "${STEP1_SRC:-}" ]; then
+        echo "input: MAF not given (not used: step 1 copied from $STEP1_SRC)"
+    elif [ "$MAF" = - ]; then
+        echo "input: MAF not given (not used: step 1 skipped, START_STEP=$START_STEP)"
+    else
+        echo "input: $MAF ($(stat -c %s "$MAF") bytes, $(stat -c %y "$MAF"))"
+    fi
     [ -n "${STEP1_SRC:-}" ] && echo "step 1 copied from: $STEP1_SRC"
     echo "mafExtractor: $(command -v mafExtractor || echo 'not found'); parallel: $(command -v parallel || echo 'not found'); python3: $(command -v python3)"
 } >> PROVENANCE.txt

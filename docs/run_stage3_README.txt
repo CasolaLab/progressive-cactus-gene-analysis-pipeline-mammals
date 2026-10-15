@@ -17,7 +17,9 @@ Inputs:
     lines are skipped; a trailing '+' on chromosome names is removed.
   - <cds_fasta>: Reference CDS nucleotide sequences named by the BED transcript IDs (a '.p' suffix is accepted).
     The run stops if a BED transcript has no CDS.
-  - <maf>: The reference-anchored MAF. Required even with STEP1_SRC (it is then only recorded in PROVENANCE.txt).
+  - <maf>: The reference-anchored MAF. Give '-' instead when STEP1_SRC is set
+    or START_STEP > 1; PROVENANCE.txt then records "MAF not given (not used: ...)". A path, when given, must exist
+    and is recorded with its size and date (not checksummed).
   - <tree_newick>: Newick tree with the MAF species names as tips (step 8).
 
 Environment (all optional):
