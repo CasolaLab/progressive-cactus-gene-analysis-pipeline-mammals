@@ -91,8 +91,13 @@ def check_and_fix_orientation(aln_path, mafextractor_dir, bed_map, valid_chroms,
         score_fwd = aligner.score(raw_seq, aln_seq)
         score_rev = aligner.score(raw_seq, str(Seq(aln_seq).reverse_complement()))
         
-        current_is_fwd = score_fwd >= score_rev
-        
+        # A tie means the reference reads the same on both strands (e.g. CATG), so its orientation cannot be
+        # inferred; flipping would undo step 4's BED-based reverse complement for every other row
+        if score_fwd == score_rev:
+            return "AMBIGUOUS: REFERENCE IS ITS OWN REVERSE COMPLEMENT, LEFT AS WRITTEN BY STEP 4"
+
+        current_is_fwd = score_fwd > score_rev
+
         # 8. Enforce BED Rules
         needs_flip = False
         if target_strand == "-" and current_is_fwd:
@@ -164,6 +169,7 @@ if __name__ == "__main__":
     
     completed = 0
     fixed_count = 0
+    ambiguous_count = 0
     errors = 0
     
     with concurrent.futures.ProcessPoolExecutor(max_workers=threads) as executor:
@@ -178,6 +184,9 @@ if __name__ == "__main__":
             if "FIXED" in status:
                 print(f"[{base}.aln]: {status}")
                 fixed_count += 1
+            elif "AMBIGUOUS" in status:
+                print(f"[{base}.aln]: {status}")
+                ambiguous_count += 1
             elif "ERROR" in status or "NO_" in status:
                 errors += 1
                 
@@ -188,5 +197,6 @@ if __name__ == "__main__":
     print("BED Orientation Audit Complete!")
     print(f"Total Files Checked: {total_files}")
     print(f"Files Fixed (Flipped to match BED): {fixed_count}")
+    print(f"Files Ambiguous (reference is its own reverse complement, not changed): {ambiguous_count}")
     if errors > 0:
         print(f"Note: {errors} files could not be evaluated.")

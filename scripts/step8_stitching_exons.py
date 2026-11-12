@@ -11,7 +11,7 @@ aligned (non-gap) bases across the gene's exons (ties: the header seen first); e
 gaps. The species set, the most distant species and the MRCA node are unchanged by this; aligned_species then
 equals the number of rows. Every species that had more than one row is logged in
 <output_dir>/one_row_per_species_log.tsv (file, species, rows_before, kept_row, kept_bases, dropped_rows,
-dropped_bases; the same columns as the former step 8b log; dropped rows separated by ';'), and the dropped rows
+dropped_bases; the same columns as the former step 8b log; dropped rows and their base counts separated by ';', in the same order), and the dropped rows
 themselves, in the same columns as the alignment, are written to <output_dir>_one_row_dropped/<file>.aln so that
 filter_dropped_row_indels.py can remove the step 14 indels that only exist because those exons became gaps.
 
@@ -171,7 +171,7 @@ def main():
                 if gone:
                     gone.sort(key=lambda h: first[h])
                     log.write(f"{out_base}.aln\t{sp}\t{len(gone) + 1}\t{kept}\t{bases[kept]}\t"
-                              f"{';'.join(gone)}\t{sum(bases[h] for h in gone)}\n")
+                              f"{';'.join(gone)}\t{';'.join(str(bases[h]) for h in gone)}\n")
 
         # Every row is stitched; with --one-row-per-species only the kept rows go to the alignment and the dropped
         # rows (same columns) go to <output_dir>_one_row_dropped/ (outside <output_dir>, because step 9 searches its
